@@ -35,7 +35,7 @@ class Netstat(object):
  
     def execute(self, interactive=False):
         self.final = []
-        list_address = self._get_address()
+        list_address = set(self._get_address())
         if interactive:
             self.interactive(list_address)
         else:
@@ -59,4 +59,5 @@ class Netstat(object):
 
 if __name__ == '__main__':
     nestat = Netstat()
-    nestat.execute(interactive=False)
+    nestat.execute(interactive=False)#Non interactive mode
+    nestat.execute(interactive=True)#Interactive mode
