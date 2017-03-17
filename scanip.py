@@ -1,11 +1,23 @@
 #!/usr/bin/python
+"""scanip.py Scan TCP connections (netstat/whois)
+
+Usage:
+  scanip.py [--interactive|--json]
+
+Options:
+  -h --help         Show this screen.
+  --interactive     Interactive mode.
+  --json            Show in json format.
+"""
 import socket
-import sys
- 
+import json
+import docopt
+
+
 class Netstat(object):
  
-    def __init__ (self):
-        with open("/proc/net/tcp",'r') as f:
+    def __init__(self):
+        with open('/proc/net/tcp', 'r') as f:
             self.content = f.readlines()
             self.content.pop(0)
  
@@ -19,12 +31,10 @@ class Netstat(object):
  
     def _get_address(self):
         result = []
-        sys.stdout.write( '\r' + ( '#' * 0 ) + ' get address')
-        sys.stdout.flush()
         for line in self.content:
-            line_array = [x for x in line.split(' ') if x !='']
+            line_array = [x for x in line.split(' ') if x != '']
             if line_array[2] != '00000000:0000':
-                host,port = line_array[2].split(':')
+                host, port = line_array[2].split(':')
                 r_host = '.'.join([(str(int(host[6:8],16))),
                                    (str(int(host[4:6],16))),
                                    (str(int(host[2:4],16))),
@@ -33,31 +43,42 @@ class Netstat(object):
  
         return result
  
-    def execute(self, interactive=False):
-        self.final = []
+    def execute(self, interactive=False, json_arg=False):
         list_address = set(self._get_address())
         if interactive:
-            self.interactive(list_address)
+            result = self.interactive(list_address)
         else:
-            self.non_interactive(list_address)
+            result = self.non_interactive(list_address)
+    
+        if not interactive and json_arg:
+            return json.dumps(result)
+        else:
+            return result
  
     def non_interactive(self, list_address):
         final = []
-        count = 0
         for address in list_address:
-            count = count + 1
-            sys.stdout.write( '\r' + ( '#' * count ) + ' Scan Address:'\
-             + address)
-            final.append((self._whois(address), address))
-            sys.stdout.flush()
- 
+            __whois = self._whois(address)
+            final.append({address: __whois if not isinstance(__whois, socket.herror) else 'Unknown host'})
+
         return final
- 
+
     def interactive(self, list_address):
         for address in list_address:
-            print address, self._whois(address)
+            __whois = self._whois(address)
+            print '  {} -> {}'.format(address, __whois if not isinstance(__whois, socket.herror) else 'Unknown host')
+
+        return False
 
 if __name__ == '__main__':
+    arguments = docopt.docopt(__doc__)
+
     nestat = Netstat()
-    nestat.execute(interactive=False)#Non interactive mode
-    nestat.execute(interactive=True)#Interactive mode
+    result = nestat.execute(interactive=arguments.get('--interactive'), json_arg=arguments.get('--json'))
+
+    if isinstance(result, str):
+        print result
+    elif isinstance(result, list):
+        for i in result:
+            for k, v in i.iteritems():
+                print '  {} -> {}'.format(k, v)
