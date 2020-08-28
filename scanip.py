@@ -11,7 +11,7 @@ Options:
 """
 import socket
 import json
-try
+try:
     import docopt
 except Exception as ex:
     print('Install docopt: pip install docopt')
