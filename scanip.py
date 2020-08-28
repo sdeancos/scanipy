@@ -11,7 +11,10 @@ Options:
 """
 import socket
 import json
-import docopt
+try
+    import docopt
+except Exception as ex:
+    print('Install docopt: pip install docopt')
 
 
 class Netstat(object):
@@ -24,7 +27,7 @@ class Netstat(object):
     def _whois(self, address):
         try:
             data = socket.gethostbyaddr(address[0])[0]
-        except Exception, ex:
+        except Exception as ex:
             data = ex
  
         return data
@@ -66,7 +69,7 @@ class Netstat(object):
     def interactive(self, list_address):
         for address in list_address:
             __whois = self._whois(address)
-            print '  {} -> {}'.format(address, __whois if not isinstance(__whois, socket.herror) else 'Unknown host')
+            print('  {} -> {}'.format(address, __whois if not isinstance(__whois, socket.herror) else 'Unknown host'))
 
         return False
 
@@ -77,8 +80,8 @@ if __name__ == '__main__':
     result = nestat.execute(interactive=arguments.get('--interactive'), json_arg=arguments.get('--json'))
 
     if isinstance(result, str):
-        print result
+        print(result)
     elif isinstance(result, list):
         for i in result:
-            for k, v in i.iteritems():
-                print '  {} -> {}'.format(k, v)
+            for k, v in i.items():
+                print('  {} -> {}'.format(k, v))
